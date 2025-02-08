@@ -23,60 +23,67 @@ namespace Sliv
         public Ground()
         {
             InitializeComponent();
+            InitializeMap();
         }
-        public Ground(int _level, int _fenceCount, int _targetX, int _targetY, int _wolfX, int _wolfY, string _language)
+
+        public Ground(int level, int fenceCount, int targetX, int targetY, int wolfX, int wolfY, string language)
         {
             InitializeComponent();
-            this._level = _level;
-            this._fenceCount = _fenceCount;
-            this._targetX = _targetX;
-            this._targetY = _targetY;
-            this._wolfY = _wolfY;
-            this._wolfX = _wolfX;
-            this._language = _language;
-            _map[_wolfX, _wolfY] = 3;
-            _map[_targetX, _targetY] = 2;
-            _remainingFence = _fenceCount;
-            label2.Text = _remainingFence.ToString();
+            _level = level;
+            _fenceCount = fenceCount;
+            _targetX = targetX;
+            _targetY = targetY;
+            _wolfX = wolfX;
+            _wolfY = wolfY;
+            _language = language;
+            _remainingFence = fenceCount;
 
-            swichLang(_language);
+            InitializeMap();
+            UpdateLanguage(_language);
+            label2.Text = _remainingFence.ToString();
         }
 
-        public void swichLang(string _language)
+        private void InitializeMap()
         {
-            if (_language == "Ua")
+            _map = new int[MapHeight, MapWidth];
+
+            for (int i = 0; i < MapHeight; i++)
+            {
+                for (int j = 0; j < MapWidth; j++)
+                {
+                    _map[i, j] = (i == 0 || i == MapHeight - 1 || j == 0 || j == MapWidth - 1) ? 1 : 0;
+                }
+            }
+
+            _map[_wolfY, _wolfX] = 3;
+            _map[_targetY, _targetX] = 2;
+        }
+
+        private void Ground_Load(object sender, EventArgs e)
+        {
+            Generate();
+        }
+
+        private void UpdateLanguage(string language)
+        {
+            if (language == "Ua")
             {
                 button3.Text = "Перевірити";
                 label2.Text = "Залишилось паркану: " + _remainingFence;
-            } else if (_language == "Eng")
+            }
+            else if (language == "Eng")
             {
                 button3.Text = "Check";
-                label2.Text = "_remainingFence left: " + _remainingFence;
+                label2.Text = "Fence left: " + _remainingFence;
             }
-        }
-        private void Ground_Load(object sender, EventArgs e)
-        {
-            Generete();
         }
 
         public void Restart()
         {
-            _map = new int[,]
-            {
-                { 1, 1, 1, 1, 1, 1, 1, 1 },
-                { 1, 0, 0, 0, 0, 0, 0, 1 },
-                { 1, 0, 0, 0, 0, 0, 0, 1 },
-                { 1, 0, 0, 0, 0, 0, 0, 1 },
-                { 1, 0, 0, 0, 0, 0, 0, 1 },
-                { 1, 0, 0, 0, 0, 0, 0, 1 },
-                { 1, 0, 0, 0, 0, 0, 0, 1 },
-                { 1, 1, 1, 1, 1, 1, 1, 1 }
-            };
-            _map[_wolfX, _wolfY] = 3;
-            _map[_targetX, _targetY] = 2;
+            InitializeMap();
             _remainingFence = _fenceCount;
-            swichLang(_language);
-            Generete();
+            UpdateLanguage(_language);
+            Generate();
         }
 
         public void Lose()
@@ -162,46 +169,61 @@ namespace Sliv
             this.Controls.Add(_control);
         }
 
-        public void Generete()
+        public void Generate()
         {
             _control.Controls.Clear();
             _remainingFence = _fenceCount;
             _control.Dock = DockStyle.Fill;
+
             int rows = _map.GetLength(0);
             int cols = _map.GetLength(1);
-            int buttonSize = 100;
-            for (int i = 0; i < rows; i++)
+            const int ButtonSize = 100;
+            const int XOffset = 500;
+            const int YOffset = 52;
+
+            for (int row = 0; row < rows; row++)
             {
-                for (int j = 0; j < cols; j++)
+                for (int col = 0; col < cols; col++)
                 {
-                    Button button = new Button();
-                    button.Size = new Size(buttonSize, buttonSize);
-                    button.Location = new Point(j * buttonSize + 500, i * buttonSize + 52);
-                    button.BackColor = Color.Green;
-                    button.FlatAppearance.BorderSize = 0;
-                    button.FlatStyle = FlatStyle.Flat;
-                    if (_map[j, i] == 1)
-                    {
-                        button.BackgroundImage = Properties.Resources.R;
-                        button.BackgroundImageLayout = ImageLayout.Zoom;
-                    }
-                    else if (_map[j, i] == 2)
-                    {
-                        button.BackgroundImage = Properties.Resources.o;
-                        button.BackgroundImageLayout = ImageLayout.Zoom;
-                    }
-                    else if (_map[j, i] == 3)
-                    {
-                        button.BackgroundImage = Properties.Resources.v;
-                        button.BackgroundImageLayout = ImageLayout.Zoom;
-                    } 
-                    button.TabIndex = _map[j, i];
-                    button.Click += new EventHandler(Button_Click);
-                    button.Name = $"{j}{i}";
+                    Button button = CreateMapButton(row, col, ButtonSize, XOffset, YOffset);
                     _control.Controls.Add(button);
                 }
             }
+
             this.Controls.Add(_control);
+        }
+
+        private Button CreateMapButton(int row, int col, int buttonSize, int xOffset, int yOffset)
+        {
+            var button = new Button
+            {
+                Size = new Size(buttonSize, buttonSize),
+                Location = new Point(col * buttonSize + xOffset, row * buttonSize + yOffset),
+                BackColor = Color.Green,
+                FlatStyle = FlatStyle.Flat,
+                Name = $"{col}{row}",
+                TabIndex = _map[col, row],
+                BackgroundImageLayout = ImageLayout.Zoom
+            };
+            button.FlatAppearance.BorderSize = 0;
+
+            switch (_map[col, row])
+            {
+                case 1:
+                    button.BackgroundImage = Properties.Resources.R;
+                    break;
+                case 2:
+                    button.BackgroundImage = Properties.Resources.o;
+                    break;
+                case 3:
+                    button.BackgroundImage = Properties.Resources.v;
+                    break;
+                default:
+                    break;
+            }
+
+            button.Click += Button_Click;
+            return button;
         }
 
         private void Button_Click(object sender, EventArgs e)
@@ -229,7 +251,7 @@ namespace Sliv
             }
 
 
-            swichLang(_language);
+            UpdateLanguage(_language);
         }
 
         public bool FindWave(int startX, int startY, int targetX, int targetY)
@@ -282,9 +304,6 @@ namespace Sliv
 
         private void button3_Click(object sender, EventArgs e)
         {
-            MapWidth = 8;
-            MapHeight = 8;
-
             if(FindWave(_wolfX, _wolfY, _targetX, _targetY))
             {
                 Lose();

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Drawing;
 using System.Windows.Forms;
 
@@ -219,50 +220,73 @@ namespace Sliv
         }
         public bool FindWave(int startX, int startY, int targetX, int targetY)
         {
-            bool add = true;
-            bool res = true;
-            int[,] cMap = new int[MapHeight, MapWidth];
-            int x, y, step = 0;
-            for (y = 0; y < MapHeight; y++)
-                for (x = 0; x < MapWidth; x++)
-                {
-                    if (_map[y, x] == 1)
-                        cMap[y, x] = -2;
-                    else
-                        cMap[y, x] = -1;
-                }
-            cMap[targetY, targetX] = 0;
-            while (add == true)
+            int[,] waveMap = InitializeWaveMap();
+            Queue<Point> queue = new Queue<Point>();
+            queue.Enqueue(new Point(targetX, targetY));
+            waveMap[targetY, targetX] = 0;
+
+            while (queue.Count > 0)
             {
-                for (y = 0; y < MapWidth; y++)
-                    for (x = 0; x < MapHeight; x++)
+                Point current = queue.Dequeue();
+                int x = current.X;
+                int y = current.Y;
+                int step = waveMap[y, x];
+
+                foreach (var neighbor in GetNeighbors(x, y))
+                {
+                    int nx = neighbor.X;
+                    int ny = neighbor.Y;
+
+                    if (waveMap[ny, nx] == -1)
                     {
-                        if (cMap[x, y] == step)
+                        waveMap[ny, nx] = step + 1;
+                        queue.Enqueue(new Point(nx, ny));
+
+                        if (nx == startX && ny == startY)
                         {
-                            if (y - 1 >= 0 && cMap[x - 1, y] != -2 && cMap[x - 1, y] == -1)
-                                cMap[x - 1, y] = step + 1;
-                            if (x - 1 >= 0 && cMap[x, y - 1] != -2 && cMap[x, y - 1] == -1)
-                                cMap[x, y - 1] = step + 1;
-                            if (y + 1 < MapWidth && cMap[x + 1, y] != -2 && cMap[x + 1, y] == -1)
-                                cMap[x + 1, y] = step + 1;
-                            if (x + 1 < MapHeight && cMap[x, y + 1] != -2 && cMap[x, y + 1] == -1)
-                                cMap[x, y + 1] = step + 1;
+                            // Path found
+                            return true;
                         }
                     }
-                step++;
-                add = true;
-                if (cMap[startY, startX] != -1)
-                {
-                    add = false;
-                    res = true;
-                }
-                if (step > MapWidth * MapHeight)
-                {
-                    add = false;
-                    res = false;
                 }
             }
-            return res;
+
+            // No path found
+            return false;
+        }
+
+        private int[,] InitializeWaveMap()
+        {
+            int[,] waveMap = new int[MapHeight, MapWidth];
+            for (int y = 0; y < MapHeight; y++)
+            {
+                for (int x = 0; x < MapWidth; x++)
+                {
+                    waveMap[y, x] = _map[y, x] == TileType.Wall ? -2 : -1;
+                }
+            }
+            return waveMap;
+        }
+
+        private IEnumerable<Point> GetNeighbors(int x, int y)
+        {
+            var possibleMoves = new List<Point>
+            {
+                new Point(x, y - 1), // Up
+                new Point(x + 1, y), // Right
+                new Point(x, y + 1), // Down
+                new Point(x - 1, y)  // Left
+            };
+
+            foreach (var point in possibleMoves)
+            {
+                int nx = point.X;
+                int ny = point.Y;
+                if (nx >= 0 && nx < MapWidth && ny >= 0 && ny < MapHeight && _map[ny, nx] != TileType.Wall)
+                {
+                    yield return point;
+                }
+            }
         }
 
         private void button3_Click(object sender, EventArgs e)

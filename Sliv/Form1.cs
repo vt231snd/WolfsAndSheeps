@@ -25,18 +25,99 @@ namespace Sliv
         public Form1()
         {
             InitializeComponent();
+            InitializeForm();
+            InitializeLevels();
+        }
+        private void InitializeForm()
+        {
             button1.Visible = false;
             panel3.Visible = false;
-            panel3Vis();
+            DisableLevelButtons();
             radioButton1.Checked = true;
             radioButton1.BackColor = Color.Green;
+            radioButton1.CheckedChanged += LanguageRadioButton_CheckedChanged;
+            radioButton2.CheckedChanged += LanguageRadioButton_CheckedChanged;
+            b1.Click += LevelButton_Click;
+            b2.Click += LevelButton_Click;
+            b3.Click += LevelButton_Click;
+        }
+        private void LevelButton_Click(object sender, EventArgs e)
+        {
+            _currentPage++;
+            if (sender is Button levelButton)
+            {
+                switch (levelButton.Name)
+                {
+                    case "b1":
+                        _ground = new Ground(1, 4, 2, 5, 4, 6, _formLanguage);
+                        break;
+                    case "b2":
+                        _ground = new Ground(2, 3, 3, 5, 4, 6, _formLanguage);
+                        break;
+                    case "b3":
+                        _ground = new Ground(3, 2, 2, 3, 6, 6, _formLanguage);
+                        break;
+                }
 
+                panel1.Controls.Add(_ground);
+                _ground.Dock = DockStyle.Fill;
+                _ground.BringToFront();
+                button1.BringToFront();
+                button1.Visible = true;
+            }
+        }
 
+        private void LanguageRadioButton_CheckedChanged(object sender, EventArgs e)
+        {
+            if (radioButton1.Checked)
+            {
+                SetUkrainianLanguage();
+            }
+            else if (radioButton2.Checked)
+            {
+                SetEnglishLanguage();
+            }
+            _language = new Lang(_formLanguage);
+        }
+        private void SetUkrainianLanguage()
+        {
+            groupBox1.Text = "Мова";
+            radioButton1.Text = "Українська";
+            radioButton2.Text = "Англійська";
+            label1.Text = "Рівні";
+            button2.Text = "Грати";
+            Exit.Text = "Вихід";
+
+            radioButton2.BackColor = SystemColors.Control;
+            radioButton1.BackColor = Color.Green;
+            _formLanguage = "Ua";
+        }
+
+        private void SetEnglishLanguage()
+        {
+            groupBox1.Text = "Language";
+            radioButton1.Text = "Ukrainian";
+            radioButton2.Text = "English";
+            label1.Text = "Levels";
+            button2.Text = "Play";
+            Exit.Text = "Exit";
+
+            radioButton1.BackColor = SystemColors.Control;
+            radioButton2.BackColor = Color.Green;
+            _formLanguage = "Eng";
+        }
+        private void InitializeLevels()
+        {
             _levels = new Levels(LogDirectory, LevelsFileName);
-            if (!File.Exists(LogDirectory + "/" + LevelsFileName))
+            if (!File.Exists(Path.Combine(LogDirectory, LevelsFileName)))
             {
                 _levels.CreateLog();
             }
+        }
+        private void DisableLevelButtons()
+        {
+            b2.Enabled = false;
+            b3.Enabled = false;
         }
         private void panel3Vis()
         {

@@ -169,32 +169,54 @@ namespace Sliv
 
         private void Button_Click(object sender, EventArgs e)
         {
-            Button clickedButton = sender as Button;
-            if (clickedButton.Name.Contains("0") || clickedButton.Name.Contains("7"))
+            if (sender is Button clickedButton && clickedButton.Tag is Point coordinates)
             {
-                return;
-            }
-            if (clickedButton.TabIndex == 0 && _remainingFence != 0)
-            {
-                clickedButton.TabIndex = 1;
-                clickedButton.BackgroundImage = Properties.Resources.R;
-                clickedButton.BackgroundImageLayout = ImageLayout.Zoom;
-                _map[Convert.ToInt32(clickedButton.Name) % 10, Convert.ToInt32(clickedButton.Name) / 10] = 1;
-                _remainingFence--;
-            }
-            else if (clickedButton.TabIndex == 1)
-            {
-                clickedButton.TabIndex = 0;
-                clickedButton.BackgroundImage = null;
-                clickedButton.BackColor = Color.Green;
-                _map[Convert.ToInt32(clickedButton.Name) % 10, Convert.ToInt32(clickedButton.Name) / 10] = 0;
-                _remainingFence++;
-            }
+                int x = coordinates.X;
+                int y = coordinates.Y;
 
+                if (IsOnBorder(x, y))
+                {
+                    return;
+                }
 
-            UpdateLanguage(_language);
+                if (_map[y, x] == TileType.Empty && _remainingFence > 0)
+                {
+                    PlaceFence(clickedButton, x, y);
+                }
+                else if (_map[y, x] == TileType.Wall)
+                {
+                    RemoveFence(clickedButton, x, y);
+                }
+
+                UpdateFenceLabel();
+            }
+        }
+        private void PlaceFence(Button button, int x, int y)
+        {
+            _map[y, x] = TileType.Wall;
+            button.BackgroundImage = Properties.Resources.R;
+            button.BackgroundImageLayout = ImageLayout.Zoom;
+            _remainingFence--;
         }
 
+        private void RemoveFence(Button button, int x, int y)
+        {
+            _map[y, x] = TileType.Empty;
+            button.BackgroundImage = null;
+            button.BackColor = Color.Green;
+            _remainingFence++;
+        }
+        private void UpdateFenceLabel()
+        {
+            if (_language == "Ua")
+            {
+                label2.Text = $"Залишилось паркану: {_remainingFence}";
+            }
+            else if (_language == "Eng")
+            {
+                label2.Text = $"Fence left: {_remainingFence}";
+            }
+        }
         public bool FindWave(int startX, int startY, int targetX, int targetY)
         {
             bool add = true;

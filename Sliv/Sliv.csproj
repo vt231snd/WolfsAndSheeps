@@ -60,6 +60,7 @@
       <DependentUpon>Ground.cs</DependentUpon>
     </Compile>
     <Compile Include="Lang.cs" />
+    <Compile Include="Language.cs" />
     <Compile Include="Levels.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

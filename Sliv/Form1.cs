@@ -15,30 +15,106 @@ namespace Sliv
 {
     public partial class Form1 : Form
     {
-        Ground Ground;
-        int page = 0;
-        string Path = "Log";
-        string FilePath = "levels.txt";
-        Levels levels;
-        string Formlang = "Ua";
-        Lang _language;
+        private Ground _ground;
+        private int _currentPage = 0;
+        private const string LogDirectory = "Log";
+        private const string LevelsFileName = "levels.txt";
+        private Levels _levels;
+        private string _formLanguage = "Ua";
+        private Lang _language;
         public Form1()
         {
             InitializeComponent();
+            InitializeForm();
+            InitializeLevels();
+        }
+        private void InitializeForm()
+        {
             button1.Visible = false;
             panel3.Visible = false;
-            panel3Vis();
+            DisableLevelButtons();
             radioButton1.Checked = true;
             radioButton1.BackColor = Color.Green;
-
-
-            levels = new Levels(Path, FilePath);
-            if (!File.Exists(Path + "/" + FilePath))
+            radioButton1.CheckedChanged += LanguageRadioButton_CheckedChanged;
+            radioButton2.CheckedChanged += LanguageRadioButton_CheckedChanged;
+            b1.Click += LevelButton_Click;
+            b2.Click += LevelButton_Click;
+            b3.Click += LevelButton_Click;
+        }
+        private void LevelButton_Click(object sender, EventArgs e)
+        {
+            _currentPage++;
+            if (sender is Button levelButton)
             {
-                levels.CreateLog();
+                switch (levelButton.Name)
+                {
+                    case "b1":
+                        _ground = new Ground(1, 4, 2, 5, 4, 6, _formLanguage);
+                        break;
+                    case "b2":
+                        _ground = new Ground(2, 3, 3, 5, 4, 6, _formLanguage);
+                        break;
+                    case "b3":
+                        _ground = new Ground(3, 2, 2, 3, 6, 6, _formLanguage);
+                        break;
+                }
+
+                panel1.Controls.Add(_ground);
+                _ground.Dock = DockStyle.Fill;
+                _ground.BringToFront();
+                button1.BringToFront();
+                button1.Visible = true;
             }
         }
-        private void panel3Vis()
+
+        private void LanguageRadioButton_CheckedChanged(object sender, EventArgs e)
+        {
+            if (radioButton1.Checked)
+            {
+                SetUkrainianLanguage();
+            }
+            else if (radioButton2.Checked)
+            {
+                SetEnglishLanguage();
+            }
+            _language = new Lang(_formLanguage);
+        }
+        private void SetUkrainianLanguage()
+        {
+            groupBox1.Text = "Мова";
+            radioButton1.Text = "Українська";
+            radioButton2.Text = "Англійська";
+            label1.Text = "Рівні";
+            button2.Text = "Грати";
+            Exit.Text = "Вихід";
+
+            radioButton2.BackColor = SystemColors.Control;
+            radioButton1.BackColor = Color.Green;
+            _formLanguage = "Ua";
+        }
+
+        private void SetEnglishLanguage()
+        {
+            groupBox1.Text = "Language";
+            radioButton1.Text = "Ukrainian";
+            radioButton2.Text = "English";
+            label1.Text = "Levels";
+            button2.Text = "Play";
+            Exit.Text = "Exit";
+
+            radioButton1.BackColor = SystemColors.Control;
+            radioButton2.BackColor = Color.Green;
+            _formLanguage = "Eng";
+        }
+        private void InitializeLevels()
+        {
+            _levels = new Levels(LogDirectory, LevelsFileName);
+            if (!File.Exists(Path.Combine(LogDirectory, LevelsFileName)))
+            {
+                _levels.CreateLog();
+            }
+        }
+        private void DisableLevelButtons()
         {
             b2.Enabled = false;
             b3.Enabled = false;
@@ -48,125 +124,66 @@ namespace Sliv
             Close();
         }
 
-        private void lvlsEn(char lvls)
+        private void EnableLevels(string completedLevels)
         {
-            if (Char.GetNumericValue(lvls) == 1) { b2.Enabled = true; b1.BackColor = Color.Green; }
-            else if (Char.GetNumericValue(lvls) == 2) { b3.Enabled = true; b2.BackColor = Color.Green; }
-            else if (Char.GetNumericValue(lvls) == 3)
+            if (completedLevels.Contains('1'))
+            {
+                b2.Enabled = true;
+                b1.BackColor = Color.Green;
+            }
+            if (completedLevels.Contains('2'))
+            {
+                b3.Enabled = true;
+                b2.BackColor = Color.Green;
+            }
+            if (completedLevels.Contains('3'))
             {
                 b3.BackColor = Color.Green;
-                if(Formlang == "Ua") {
-                    MessageBox.Show("Вы пройшли всі рівні. Чекайте оновлень)");
-                } else if(Formlang == "Eng")
-                {
-                    MessageBox.Show("You complete all levels. Wait for updates)");
-                }
+                string message = _formLanguage == "Ua"
+                    ? "Ви пройшли всі рівні. Чекайте оновлень :)"
+                    : "You've completed all levels. Stay tuned for updates :)";
+                MessageBox.Show(message);
             }
         }
 
-        private void button2_Click(object sender, EventArgs e)
+        private void PlayButton_Click(object sender, EventArgs e)
         {
-            page++;
+            _currentPage++;
             panel3.Visible = true;
             panel2.Visible = false;
             button1.BringToFront();
             button1.Visible = true;
 
-            if (levels.ReadLog() != 0)
-            {
-                string s = levels.ReadLog().ToString();
-                char[] lvls = s.ToCharArray();
-                for (int i = 0; i < lvls.Length; i++)
-                {
-                    lvlsEn(lvls[i]);
-                }
-            }
+            string levelsCompleted = _levels.ReadLog().ToString() ?? string.Empty;
+            EnableLevels(levelsCompleted);
         }
 
-        private void button1_Click(object sender, EventArgs e)
+        private void BackButton_Click(object sender, EventArgs e)
         {
-            page--;
-            if (page == 0)
+            _currentPage--;
+            if (_currentPage == 0)
             {
                 button1.Visible = false;
                 panel2.Visible = true;
                 panel3.Visible = false;
             }
-            else if (page == 1)
+            else if (_currentPage == 1)
             {
-                if (levels.ReadLog() == 0) levels.UpdateLog(Ground.CompleteLevelInstance._level.ToString());
-                else levels.UpdateLog(levels.ReadLog().ToString() + Ground.CompleteLevelInstance._level.ToString());
-                string s = levels.ReadLog().ToString();
-                char[] lvls = s.ToCharArray();
-
-                for (int i = 0; i < lvls.Length; i++)
+                string currentLevel = _ground?.CompleteLevelInstance?._level.ToString();
+                if (!string.IsNullOrEmpty(currentLevel))
                 {
-                    lvlsEn(lvls[i]);
+                    _levels.UpdateLog(_levels.ReadLog() + currentLevel);
                 }
-                panel1.Controls.Remove(Ground);
+
+                string levelsCompleted = _levels.ReadLog().ToString() ?? string.Empty;
+                EnableLevels(levelsCompleted);
+
+                panel1.Controls.Remove(_ground);
                 panel3.Visible = true;
                 panel2.Visible = false;
                 button1.BringToFront();
                 button1.Visible = true;
             }
-
-        }
-
-        private void b1_Click(object sender, EventArgs e)
-        {
-            page++;
-            Button btn = (Button)sender;
-            switch (btn.Name)
-            {
-                case "b1": Ground = new Ground(1, 4, 2, 5, 4, 6, Formlang); break;
-                case "b2": Ground = new Ground(2, 3, 3, 5, 4, 6, Formlang); break;
-                case "b3": Ground = new Ground(3, 2, 2, 3, 6, 6, Formlang); break;
-            }
-
-            panel1.Controls.Add(Ground);
-            Ground.Dock = DockStyle.Fill;
-            Ground.BringToFront();
-            button1.BringToFront();
-            button1.Visible = true;
-
-        }
-
-        private void Form1_Load(object sender, EventArgs e)
-        {
-        }
-
-
-        private void radioButton1_CheckedChanged(object sender, EventArgs e)
-        {
-            if (radioButton1.Checked)
-            {
-                groupBox1.Text = "Мова";
-                radioButton1.Text = "Українська";
-                radioButton2.Text = "Англійська";
-
-                label1.Text = "Рівні";
-                button2.Text = "Грати";
-                Exit.Text = "Вихід";
-
-                radioButton2.BackColor = SystemColors.Control;
-                radioButton1.BackColor = Color.Green;
-                Formlang = "Ua";
-            }
-            else if (radioButton2.Checked)
-            {
-                groupBox1.Text = "Language";
-                radioButton1.Text = "Ukrainian";
-                radioButton2.Text = "English";
-
-                label1.Text = "Levels";
-                button2.Text = "Play";
-                Exit.Text = "Exit";
-
-                radioButton1.BackColor = SystemColors.Control;
-                radioButton2.BackColor = Color.Green;
-                Formlang = "Eng";
-            }
-            _language = new Lang(Formlang);
         }
     }
 }

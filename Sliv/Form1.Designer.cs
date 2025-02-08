@@ -99,7 +99,6 @@
             this.b1.TabIndex = 7;
             this.b1.Text = "1";
             this.b1.UseVisualStyleBackColor = true;
-            this.b1.Click += new System.EventHandler(this.b1_Click);
             // 
             // b2
             // 
@@ -112,7 +111,6 @@
             this.b2.TabIndex = 8;
             this.b2.Text = "2";
             this.b2.UseVisualStyleBackColor = true;
-            this.b2.Click += new System.EventHandler(this.b1_Click);
             // 
             // b3
             // 
@@ -125,7 +123,6 @@
             this.b3.TabIndex = 9;
             this.b3.Text = "3";
             this.b3.UseVisualStyleBackColor = true;
-            this.b3.Click += new System.EventHandler(this.b1_Click);
             // 
             // panel2
             // 
@@ -171,7 +168,6 @@
             this.radioButton2.TabStop = true;
             this.radioButton2.Text = "Англійська";
             this.radioButton2.UseVisualStyleBackColor = false;
-            this.radioButton2.CheckedChanged += new System.EventHandler(this.radioButton1_CheckedChanged);
             // 
             // radioButton1
             // 
@@ -188,7 +184,6 @@
             this.radioButton1.TabStop = true;
             this.radioButton1.Text = "Українська";
             this.radioButton1.UseVisualStyleBackColor = false;
-            this.radioButton1.CheckedChanged += new System.EventHandler(this.radioButton1_CheckedChanged);
             // 
             // Exit
             // 
@@ -216,7 +211,7 @@
             this.button2.TabIndex = 3;
             this.button2.Text = "Грати";
             this.button2.UseVisualStyleBackColor = false;
-            this.button2.Click += new System.EventHandler(this.button2_Click);
+            this.button2.Click += new System.EventHandler(this.PlayButton_Click);
             // 
             // button1
             // 
@@ -228,7 +223,7 @@
             this.button1.Size = new System.Drawing.Size(58, 48);
             this.button1.TabIndex = 6;
             this.button1.UseVisualStyleBackColor = true;
-            this.button1.Click += new System.EventHandler(this.button1_Click);
+            this.button1.Click += new System.EventHandler(this.BackButton_Click);
             // 
             // Form1
             // 
@@ -239,7 +234,6 @@
             this.Name = "Form1";
             this.Text = "Form1";
             this.WindowState = System.Windows.Forms.FormWindowState.Maximized;
-            this.Load += new System.EventHandler(this.Form1_Load);
             this.panel1.ResumeLayout(false);
             this.panel3.ResumeLayout(false);
             this.panel3.PerformLayout();

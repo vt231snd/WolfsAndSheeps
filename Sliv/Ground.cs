@@ -16,10 +16,12 @@ namespace Sliv
         private string _language = "Ua";
         private readonly Control _control = new Control();
         public CompleteLevel CompleteLevelInstance { get; } = new CompleteLevel();
-        private int[,] _map;
+        private TileType[,] _map;
         private const int ButtonSize = 100;
         private const int MapWidth = 8;
         private const int MapHeight = 8;
+        private const int XOffset = 500;
+        private const int YOffset = 52;
         public Ground()
         {
             InitializeComponent();
@@ -45,20 +47,26 @@ namespace Sliv
 
         private void InitializeMap()
         {
-            _map = new int[MapHeight, MapWidth];
+            _map = new TileType[MapHeight, MapWidth];
 
-            for (int i = 0; i < MapHeight; i++)
+            for (int y = 0; y < MapHeight; y++)
             {
-                for (int j = 0; j < MapWidth; j++)
+                for (int x = 0; x < MapWidth; x++)
                 {
-                    _map[i, j] = (i == 0 || i == MapHeight - 1 || j == 0 || j == MapWidth - 1) ? 1 : 0;
+                    if (IsOnBorder(x, y))
+                        _map[y, x] = TileType.Wall;
+                    else
+                        _map[y, x] = TileType.Empty;
                 }
             }
 
-            _map[_wolfX, _wolfY] = 3;
-            _map[_targetX, _targetY] = 2;
+            _map[_wolfY, _wolfX] = TileType.Wolf;
+            _map[_targetY, _targetX] = TileType.Target;
         }
-
+        private bool IsOnBorder(int x, int y)
+        {
+            return x == 0 || x == MapWidth - 1 || y == 0 || y == MapHeight - 1;
+        }
         private void Ground_Load(object sender, EventArgs e)
         {
             Generate();

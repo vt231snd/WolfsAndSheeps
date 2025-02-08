@@ -55,8 +55,8 @@ namespace Sliv
                 }
             }
 
-            _map[_wolfY, _wolfX] = 3;
-            _map[_targetY, _targetX] = 2;
+            _map[_wolfX, _wolfY] = 3;
+            _map[_targetX, _targetY] = 2;
         }
 
         private void Ground_Load(object sender, EventArgs e)
@@ -162,7 +162,7 @@ namespace Sliv
                 BackColor = Color.Green,
                 FlatStyle = FlatStyle.Flat,
                 FlatAppearance = { BorderSize = 0 },
-                TabIndex = _map[i, j],
+                TabIndex = _map[j, i],
                 Name = $"{j}{i}"
             };
             button.BackgroundImageLayout = ImageLayout.Zoom;
@@ -223,7 +223,7 @@ namespace Sliv
                     break;
             }
 
-            button.Click += Button_Click;
+            button.Click += new EventHandler(Button_Click);
             return button;
         }
 

@@ -97,61 +97,14 @@ namespace Sliv
         public void DisplayLoseScreen()
         {
             SetupControl();
-
-            for (int i = 0; i < MapHeight; i++)
-            {
-                for (int j = 0; j < MapWidth; j++)
-                {
-                    Button button = CreateMapButton(i, j);
-
-                    if (_map[i, j] == 1)
-                    {
-                        button.BackgroundImage = Properties.Resources.R;
-                    }
-                    else if (_map[i, j] == 2)
-                    {
-                        button.BackgroundImage = Properties.Resources.oo;
-                    }
-                    else if (_map[i, j] == 3)
-                    {
-                        button.BackgroundImage = Properties.Resources.vv;
-                    }
-
-                    _control.Controls.Add(button);
-                }
-            }
-
+            CreateMapButtons(isVictory: false);
             this.Controls.Add(_control);
         }
 
         public void DisplayVictoryScreen()
         {
             SetupControl();
-
-            for (int i = 0; i < MapHeight; i++)
-            {
-                for (int j = 0; j < MapWidth; j++)
-                {
-                    Button button = CreateMapButton(i, j);
-                    button.Enabled = false;
-
-                    if (_map[i, j] == 1)
-                    {
-                        button.BackgroundImage = Properties.Resources.R;
-                    }
-                    else if (_map[i, j] == 2)
-                    {
-                        button.BackgroundImage = Properties.Resources.ov;
-                    }
-                    else if (_map[i, j] == 3)
-                    {
-                        button.BackgroundImage = Properties.Resources.vo;
-                    }
-
-                    _control.Controls.Add(button);
-                }
-            }
-
+            CreateMapButtons(isVictory: true);
             this.Controls.Add(_control);
         }
 
@@ -161,77 +114,56 @@ namespace Sliv
             _control.Dock = DockStyle.Fill;
         }
 
-        private Button CreateMapButton(int i, int j)
+        private void Generate()
         {
-            Button button = new Button
-            {
-                Size = new Size(ButtonSize, ButtonSize),
-                Location = new Point(j * ButtonSize + 500, i * ButtonSize + 52),
-                BackColor = Color.Green,
-                FlatStyle = FlatStyle.Flat,
-                FlatAppearance = { BorderSize = 0 },
-                TabIndex = _map[j, i],
-                Name = $"{j}{i}"
-            };
-            button.BackgroundImageLayout = ImageLayout.Zoom;
-            button.Click += Button_Click;
-            return button;
-        }
-
-        public void Generate()
-        {
-            _control.Controls.Clear();
-            _remainingFence = _fenceCount;
-            _control.Dock = DockStyle.Fill;
-
-            int rows = _map.GetLength(0);
-            int cols = _map.GetLength(1);
-            const int ButtonSize = 100;
-            const int XOffset = 500;
-            const int YOffset = 52;
-
-            for (int row = 0; row < rows; row++)
-            {
-                for (int col = 0; col < cols; col++)
-                {
-                    Button button = CreateMapButton(row, col, ButtonSize, XOffset, YOffset);
-                    _control.Controls.Add(button);
-                }
-            }
-
+            SetupControl();
+            CreateMapButtons(isVictory: false);
             this.Controls.Add(_control);
         }
 
-        private Button CreateMapButton(int row, int col, int buttonSize, int xOffset, int yOffset)
+        private void CreateMapButtons(bool isVictory)
+        {
+            for (int y = 0; y < MapHeight; y++)
+            {
+                for (int x = 0; x < MapWidth; x++)
+                {
+                    var button = CreateMapButton(x, y, isVictory);
+                    _control.Controls.Add(button);
+                }
+            }
+        }
+
+        private Button CreateMapButton(int x, int y, bool isVictory)
         {
             var button = new Button
             {
-                Size = new Size(buttonSize, buttonSize),
-                Location = new Point(col * buttonSize + xOffset, row * buttonSize + yOffset),
+                Size = new Size(ButtonSize, ButtonSize),
+                Location = new Point(x * ButtonSize + XOffset, y * ButtonSize + YOffset),
                 BackColor = Color.Green,
                 FlatStyle = FlatStyle.Flat,
-                Name = $"{col}{row}",
-                TabIndex = _map[col, row],
-                BackgroundImageLayout = ImageLayout.Zoom
+                Name = $"{x}{y}",
+                Tag = new Point(x, y),
+                BackgroundImageLayout = ImageLayout.Zoom,
+                Enabled = !isVictory
             };
             button.FlatAppearance.BorderSize = 0;
+            button.Click += Button_Click;
 
-            switch (_map[col, row])
+            switch (_map[y, x])
             {
-                case 1:
+                case TileType.Wall:
                     button.BackgroundImage = Properties.Resources.R;
                     break;
-                case 2:
-                    button.BackgroundImage = Properties.Resources.o;
+                case TileType.Target:
+                    button.BackgroundImage = isVictory ? Properties.Resources.ov : Properties.Resources.o;
                     break;
-                case 3:
-                    button.BackgroundImage = Properties.Resources.v;
+                case TileType.Wolf:
+                    button.BackgroundImage = isVictory ? Properties.Resources.vo : Properties.Resources.v;
                     break;
                 default:
                     break;
             }
 
-            button.Click += new EventHandler(Button_Click);
             return button;
         }
 

@@ -15,13 +15,13 @@ namespace Sliv
 {
     public partial class Form1 : Form
     {
-        Ground Ground;
-        int page = 0;
-        string Path = "Log";
-        string FilePath = "levels.txt";
-        Levels levels;
-        string Formlang = "Ua";
-        Lang _language;
+        private Ground _ground;
+        private int _currentPage = 0;
+        private const string LogDirectory = "Log";
+        private const string LevelsFileName = "levels.txt";
+        private Levels _levels;
+        private string _formLanguage = "Ua";
+        private Lang _language;
         public Form1()
         {
             InitializeComponent();
@@ -32,10 +32,10 @@ namespace Sliv
             radioButton1.BackColor = Color.Green;
 
 
-            levels = new Levels(Path, FilePath);
-            if (!File.Exists(Path + "/" + FilePath))
+            _levels = new Levels(LogDirectory, LevelsFileName);
+            if (!File.Exists(LogDirectory + "/" + LevelsFileName))
             {
-                levels.CreateLog();
+                _levels.CreateLog();
             }
         }
         private void panel3Vis()
@@ -55,9 +55,9 @@ namespace Sliv
             else if (Char.GetNumericValue(lvls) == 3)
             {
                 b3.BackColor = Color.Green;
-                if(Formlang == "Ua") {
+                if(_formLanguage == "Ua") {
                     MessageBox.Show("Вы пройшли всі рівні. Чекайте оновлень)");
-                } else if(Formlang == "Eng")
+                } else if(_formLanguage == "Eng")
                 {
                     MessageBox.Show("You complete all levels. Wait for updates)");
                 }
@@ -66,15 +66,15 @@ namespace Sliv
 
         private void button2_Click(object sender, EventArgs e)
         {
-            page++;
+            _currentPage++;
             panel3.Visible = true;
             panel2.Visible = false;
             button1.BringToFront();
             button1.Visible = true;
 
-            if (levels.ReadLog() != 0)
+            if (_levels.ReadLog() != 0)
             {
-                string s = levels.ReadLog().ToString();
+                string s = _levels.ReadLog().ToString();
                 char[] lvls = s.ToCharArray();
                 for (int i = 0; i < lvls.Length; i++)
                 {
@@ -85,25 +85,25 @@ namespace Sliv
 
         private void button1_Click(object sender, EventArgs e)
         {
-            page--;
-            if (page == 0)
+            _currentPage--;
+            if (_currentPage == 0)
             {
                 button1.Visible = false;
                 panel2.Visible = true;
                 panel3.Visible = false;
             }
-            else if (page == 1)
+            else if (_currentPage == 1)
             {
-                if (levels.ReadLog() == 0) levels.UpdateLog(Ground.CompleteLevelInstance._level.ToString());
-                else levels.UpdateLog(levels.ReadLog().ToString() + Ground.CompleteLevelInstance._level.ToString());
-                string s = levels.ReadLog().ToString();
+                if (_levels.ReadLog() == 0) _levels.UpdateLog(_ground.CompleteLevelInstance._level.ToString());
+                else _levels.UpdateLog(_levels.ReadLog().ToString() + _ground.CompleteLevelInstance._level.ToString());
+                string s = _levels.ReadLog().ToString();
                 char[] lvls = s.ToCharArray();
 
                 for (int i = 0; i < lvls.Length; i++)
                 {
                     lvlsEn(lvls[i]);
                 }
-                panel1.Controls.Remove(Ground);
+                panel1.Controls.Remove(_ground);
                 panel3.Visible = true;
                 panel2.Visible = false;
                 button1.BringToFront();
@@ -114,18 +114,18 @@ namespace Sliv
 
         private void b1_Click(object sender, EventArgs e)
         {
-            page++;
+            _currentPage++;
             Button btn = (Button)sender;
             switch (btn.Name)
             {
-                case "b1": Ground = new Ground(1, 4, 2, 5, 4, 6, Formlang); break;
-                case "b2": Ground = new Ground(2, 3, 3, 5, 4, 6, Formlang); break;
-                case "b3": Ground = new Ground(3, 2, 2, 3, 6, 6, Formlang); break;
+                case "b1": _ground = new Ground(1, 4, 2, 5, 4, 6, _formLanguage); break;
+                case "b2": _ground = new Ground(2, 3, 3, 5, 4, 6, _formLanguage); break;
+                case "b3": _ground = new Ground(3, 2, 2, 3, 6, 6, _formLanguage); break;
             }
 
-            panel1.Controls.Add(Ground);
-            Ground.Dock = DockStyle.Fill;
-            Ground.BringToFront();
+            panel1.Controls.Add(_ground);
+            _ground.Dock = DockStyle.Fill;
+            _ground.BringToFront();
             button1.BringToFront();
             button1.Visible = true;
 
@@ -150,7 +150,7 @@ namespace Sliv
 
                 radioButton2.BackColor = SystemColors.Control;
                 radioButton1.BackColor = Color.Green;
-                Formlang = "Ua";
+                _formLanguage = "Ua";
             }
             else if (radioButton2.Checked)
             {
@@ -164,9 +164,9 @@ namespace Sliv
 
                 radioButton1.BackColor = SystemColors.Control;
                 radioButton2.BackColor = Color.Green;
-                Formlang = "Eng";
+                _formLanguage = "Eng";
             }
-            _language = new Lang(Formlang);
+            _language = new Lang(_formLanguage);
         }
     }
 }

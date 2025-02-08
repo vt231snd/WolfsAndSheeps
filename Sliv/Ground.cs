@@ -291,22 +291,19 @@ namespace Sliv
 
         private void button3_Click(object sender, EventArgs e)
         {
-            if(FindWave(_wolfX, _wolfY, _targetX, _targetY))
+            bool pathExists = FindWave(_wolfX, _wolfY, _targetX, _targetY);
+            if (pathExists)
             {
                 DisplayLoseScreen();
-                if (_language == "Ua")
-                    MessageBox.Show("Ви програли :(");
-                else if(_language == "Eng")
-                    MessageBox.Show("Lose :(");
+                string loseMessage = _language == "Ua" ? "Ви програли :(" : "You lost :(";
+                MessageBox.Show(loseMessage);
                 Restart();
-            } else
+            }
+            else
             {
                 DisplayVictoryScreen();
-                
-                if (_language == "Ua")
-                    MessageBox.Show("Ви перемогли!");
-                else if (_language == "Eng")
-                    MessageBox.Show("Victory!");
+                string winMessage = _language == "Ua" ? "Ви перемогли!" : "You won!";
+                MessageBox.Show(winMessage);
                 CompleteLevelInstance._level = _level;
                 CompleteLevelInstance.isComp = true;
             }

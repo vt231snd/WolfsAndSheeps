@@ -8,7 +8,7 @@ namespace Sliv
 {
     public class CompleteLevel
     {
-        public int lvl { get; set; }
+        public int _level { get; set; }
         public bool isComp { get; set; }
         public CompleteLevel() { }
     }

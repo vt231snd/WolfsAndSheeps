@@ -8,12 +8,12 @@ namespace Sliv
 {
     public class Lang
     {
-        public string lang { get; set; }
+        public string _language { get; set; }
         public string Formlang { get; set; }
 
-        public Lang(string lang) {
-            this.lang = lang;
-            Formlang = lang;
+        public Lang(string _language) {
+            this._language = _language;
+            Formlang = _language;
         }
     }
 }

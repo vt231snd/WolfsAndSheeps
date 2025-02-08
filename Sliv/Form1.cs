@@ -21,7 +21,7 @@ namespace Sliv
         string FilePath = "levels.txt";
         Levels levels;
         string Formlang = "Ua";
-        Lang lang;
+        Lang _language;
         public Form1()
         {
             InitializeComponent();
@@ -94,8 +94,8 @@ namespace Sliv
             }
             else if (page == 1)
             {
-                if (levels.ReadLog() == 0) levels.UpdateLog(Ground.comp.lvl.ToString());
-                else levels.UpdateLog(levels.ReadLog().ToString() + Ground.comp.lvl.ToString());
+                if (levels.ReadLog() == 0) levels.UpdateLog(Ground.CompleteLevelInstance._level.ToString());
+                else levels.UpdateLog(levels.ReadLog().ToString() + Ground.CompleteLevelInstance._level.ToString());
                 string s = levels.ReadLog().ToString();
                 char[] lvls = s.ToCharArray();
 
@@ -166,7 +166,7 @@ namespace Sliv
                 radioButton2.BackColor = Color.Green;
                 Formlang = "Eng";
             }
-            lang = new Lang(Formlang);
+            _language = new Lang(Formlang);
         }
     }
 }

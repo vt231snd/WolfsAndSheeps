@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Drawing;
 using System.Windows.Forms;
 
@@ -16,10 +17,12 @@ namespace Sliv
         private string _language = "Ua";
         private readonly Control _control = new Control();
         public CompleteLevel CompleteLevelInstance { get; } = new CompleteLevel();
-        private int[,] _map;
+        private TileType[,] _map;
         private const int ButtonSize = 100;
         private const int MapWidth = 8;
         private const int MapHeight = 8;
+        private const int XOffset = 500;
+        private const int YOffset = 52;
         public Ground()
         {
             InitializeComponent();
@@ -45,20 +48,26 @@ namespace Sliv
 
         private void InitializeMap()
         {
-            _map = new int[MapHeight, MapWidth];
+            _map = new TileType[MapHeight, MapWidth];
 
-            for (int i = 0; i < MapHeight; i++)
+            for (int y = 0; y < MapHeight; y++)
             {
-                for (int j = 0; j < MapWidth; j++)
+                for (int x = 0; x < MapWidth; x++)
                 {
-                    _map[i, j] = (i == 0 || i == MapHeight - 1 || j == 0 || j == MapWidth - 1) ? 1 : 0;
+                    if (IsOnBorder(x, y))
+                        _map[y, x] = TileType.Wall;
+                    else
+                        _map[y, x] = TileType.Empty;
                 }
             }
 
-            _map[_wolfX, _wolfY] = 3;
-            _map[_targetX, _targetY] = 2;
+            _map[_wolfY, _wolfX] = TileType.Wolf;
+            _map[_targetY, _targetX] = TileType.Target;
         }
-
+        private bool IsOnBorder(int x, int y)
+        {
+            return x == 0 || x == MapWidth - 1 || y == 0 || y == MapHeight - 1;
+        }
         private void Ground_Load(object sender, EventArgs e)
         {
             Generate();
@@ -89,61 +98,14 @@ namespace Sliv
         public void DisplayLoseScreen()
         {
             SetupControl();
-
-            for (int i = 0; i < MapHeight; i++)
-            {
-                for (int j = 0; j < MapWidth; j++)
-                {
-                    Button button = CreateMapButton(i, j);
-
-                    if (_map[i, j] == 1)
-                    {
-                        button.BackgroundImage = Properties.Resources.R;
-                    }
-                    else if (_map[i, j] == 2)
-                    {
-                        button.BackgroundImage = Properties.Resources.oo;
-                    }
-                    else if (_map[i, j] == 3)
-                    {
-                        button.BackgroundImage = Properties.Resources.vv;
-                    }
-
-                    _control.Controls.Add(button);
-                }
-            }
-
+            CreateMapButtons(isVictory: false);
             this.Controls.Add(_control);
         }
 
         public void DisplayVictoryScreen()
         {
             SetupControl();
-
-            for (int i = 0; i < MapHeight; i++)
-            {
-                for (int j = 0; j < MapWidth; j++)
-                {
-                    Button button = CreateMapButton(i, j);
-                    button.Enabled = false;
-
-                    if (_map[i, j] == 1)
-                    {
-                        button.BackgroundImage = Properties.Resources.R;
-                    }
-                    else if (_map[i, j] == 2)
-                    {
-                        button.BackgroundImage = Properties.Resources.ov;
-                    }
-                    else if (_map[i, j] == 3)
-                    {
-                        button.BackgroundImage = Properties.Resources.vo;
-                    }
-
-                    _control.Controls.Add(button);
-                }
-            }
-
+            CreateMapButtons(isVictory: true);
             this.Controls.Add(_control);
         }
 
@@ -153,174 +115,195 @@ namespace Sliv
             _control.Dock = DockStyle.Fill;
         }
 
-        private Button CreateMapButton(int i, int j)
+        private void Generate()
         {
-            Button button = new Button
-            {
-                Size = new Size(ButtonSize, ButtonSize),
-                Location = new Point(j * ButtonSize + 500, i * ButtonSize + 52),
-                BackColor = Color.Green,
-                FlatStyle = FlatStyle.Flat,
-                FlatAppearance = { BorderSize = 0 },
-                TabIndex = _map[j, i],
-                Name = $"{j}{i}"
-            };
-            button.BackgroundImageLayout = ImageLayout.Zoom;
-            button.Click += Button_Click;
-            return button;
-        }
-
-        public void Generate()
-        {
-            _control.Controls.Clear();
-            _remainingFence = _fenceCount;
-            _control.Dock = DockStyle.Fill;
-
-            int rows = _map.GetLength(0);
-            int cols = _map.GetLength(1);
-            const int ButtonSize = 100;
-            const int XOffset = 500;
-            const int YOffset = 52;
-
-            for (int row = 0; row < rows; row++)
-            {
-                for (int col = 0; col < cols; col++)
-                {
-                    Button button = CreateMapButton(row, col, ButtonSize, XOffset, YOffset);
-                    _control.Controls.Add(button);
-                }
-            }
-
+            SetupControl();
+            CreateMapButtons(isVictory: false);
             this.Controls.Add(_control);
         }
 
-        private Button CreateMapButton(int row, int col, int buttonSize, int xOffset, int yOffset)
+        private void CreateMapButtons(bool isVictory)
+        {
+            for (int y = 0; y < MapHeight; y++)
+            {
+                for (int x = 0; x < MapWidth; x++)
+                {
+                    var button = CreateMapButton(x, y, isVictory);
+                    _control.Controls.Add(button);
+                }
+            }
+        }
+
+        private Button CreateMapButton(int x, int y, bool isVictory)
         {
             var button = new Button
             {
-                Size = new Size(buttonSize, buttonSize),
-                Location = new Point(col * buttonSize + xOffset, row * buttonSize + yOffset),
+                Size = new Size(ButtonSize, ButtonSize),
+                Location = new Point(x * ButtonSize + XOffset, y * ButtonSize + YOffset),
                 BackColor = Color.Green,
                 FlatStyle = FlatStyle.Flat,
-                Name = $"{col}{row}",
-                TabIndex = _map[col, row],
-                BackgroundImageLayout = ImageLayout.Zoom
+                Name = $"{x}{y}",
+                Tag = new Point(x, y),
+                BackgroundImageLayout = ImageLayout.Zoom,
+                Enabled = !isVictory
             };
             button.FlatAppearance.BorderSize = 0;
+            button.Click += Button_Click;
 
-            switch (_map[col, row])
+            switch (_map[y, x])
             {
-                case 1:
+                case TileType.Wall:
                     button.BackgroundImage = Properties.Resources.R;
                     break;
-                case 2:
-                    button.BackgroundImage = Properties.Resources.o;
+                case TileType.Target:
+                    button.BackgroundImage = isVictory ? Properties.Resources.ov : Properties.Resources.o;
                     break;
-                case 3:
-                    button.BackgroundImage = Properties.Resources.v;
+                case TileType.Wolf:
+                    button.BackgroundImage = isVictory ? Properties.Resources.vo : Properties.Resources.v;
                     break;
                 default:
                     break;
             }
 
-            button.Click += new EventHandler(Button_Click);
             return button;
         }
 
         private void Button_Click(object sender, EventArgs e)
         {
-            Button clickedButton = sender as Button;
-            if (clickedButton.Name.Contains("0") || clickedButton.Name.Contains("7"))
+            if (sender is Button clickedButton && clickedButton.Tag is Point coordinates)
             {
-                return;
-            }
-            if (clickedButton.TabIndex == 0 && _remainingFence != 0)
-            {
-                clickedButton.TabIndex = 1;
-                clickedButton.BackgroundImage = Properties.Resources.R;
-                clickedButton.BackgroundImageLayout = ImageLayout.Zoom;
-                _map[Convert.ToInt32(clickedButton.Name) % 10, Convert.ToInt32(clickedButton.Name) / 10] = 1;
-                _remainingFence--;
-            }
-            else if (clickedButton.TabIndex == 1)
-            {
-                clickedButton.TabIndex = 0;
-                clickedButton.BackgroundImage = null;
-                clickedButton.BackColor = Color.Green;
-                _map[Convert.ToInt32(clickedButton.Name) % 10, Convert.ToInt32(clickedButton.Name) / 10] = 0;
-                _remainingFence++;
-            }
+                int x = coordinates.X;
+                int y = coordinates.Y;
 
+                if (IsOnBorder(x, y))
+                {
+                    return;
+                }
 
-            UpdateLanguage(_language);
+                if (_map[y, x] == TileType.Empty && _remainingFence > 0)
+                {
+                    PlaceFence(clickedButton, x, y);
+                }
+                else if (_map[y, x] == TileType.Wall)
+                {
+                    RemoveFence(clickedButton, x, y);
+                }
+
+                UpdateFenceLabel();
+            }
+        }
+        private void PlaceFence(Button button, int x, int y)
+        {
+            _map[y, x] = TileType.Wall;
+            button.BackgroundImage = Properties.Resources.R;
+            button.BackgroundImageLayout = ImageLayout.Zoom;
+            _remainingFence--;
         }
 
+        private void RemoveFence(Button button, int x, int y)
+        {
+            _map[y, x] = TileType.Empty;
+            button.BackgroundImage = null;
+            button.BackColor = Color.Green;
+            _remainingFence++;
+        }
+        private void UpdateFenceLabel()
+        {
+            if (_language == "Ua")
+            {
+                label2.Text = $"Залишилось паркану: {_remainingFence}";
+            }
+            else if (_language == "Eng")
+            {
+                label2.Text = $"Fence left: {_remainingFence}";
+            }
+        }
         public bool FindWave(int startX, int startY, int targetX, int targetY)
         {
-            bool add = true;
-            bool res = true;
-            int[,] cMap = new int[MapHeight, MapWidth];
-            int x, y, step = 0;
-            for (y = 0; y < MapHeight; y++)
-                for (x = 0; x < MapWidth; x++)
-                {
-                    if (_map[y, x] == 1)
-                        cMap[y, x] = -2;
-                    else
-                        cMap[y, x] = -1;
-                }
-            cMap[targetY, targetX] = 0;
-            while (add == true)
+            int[,] waveMap = InitializeWaveMap();
+            Queue<Point> queue = new Queue<Point>();
+            queue.Enqueue(new Point(targetX, targetY));
+            waveMap[targetY, targetX] = 0;
+
+            while (queue.Count > 0)
             {
-                for (y = 0; y < MapWidth; y++)
-                    for (x = 0; x < MapHeight; x++)
+                Point current = queue.Dequeue();
+                int x = current.X;
+                int y = current.Y;
+                int step = waveMap[y, x];
+
+                foreach (var neighbor in GetNeighbors(x, y))
+                {
+                    int nx = neighbor.X;
+                    int ny = neighbor.Y;
+
+                    if (waveMap[ny, nx] == -1)
                     {
-                        if (cMap[x, y] == step)
+                        waveMap[ny, nx] = step + 1;
+                        queue.Enqueue(new Point(nx, ny));
+
+                        if (nx == startX && ny == startY)
                         {
-                            if (y - 1 >= 0 && cMap[x - 1, y] != -2 && cMap[x - 1, y] == -1)
-                                cMap[x - 1, y] = step + 1;
-                            if (x - 1 >= 0 && cMap[x, y - 1] != -2 && cMap[x, y - 1] == -1)
-                                cMap[x, y - 1] = step + 1;
-                            if (y + 1 < MapWidth && cMap[x + 1, y] != -2 && cMap[x + 1, y] == -1)
-                                cMap[x + 1, y] = step + 1;
-                            if (x + 1 < MapHeight && cMap[x, y + 1] != -2 && cMap[x, y + 1] == -1)
-                                cMap[x, y + 1] = step + 1;
+                            // Path found
+                            return true;
                         }
                     }
-                step++;
-                add = true;
-                if (cMap[startY, startX] != -1)
-                {
-                    add = false;
-                    res = true;
-                }
-                if (step > MapWidth * MapHeight)
-                {
-                    add = false;
-                    res = false;
                 }
             }
-            return res;
+
+            // No path found
+            return false;
+        }
+
+        private int[,] InitializeWaveMap()
+        {
+            int[,] waveMap = new int[MapHeight, MapWidth];
+            for (int y = 0; y < MapHeight; y++)
+            {
+                for (int x = 0; x < MapWidth; x++)
+                {
+                    waveMap[y, x] = _map[y, x] == TileType.Wall ? -2 : -1;
+                }
+            }
+            return waveMap;
+        }
+
+        private IEnumerable<Point> GetNeighbors(int x, int y)
+        {
+            var possibleMoves = new List<Point>
+            {
+                new Point(x, y - 1), // Up
+                new Point(x + 1, y), // Right
+                new Point(x, y + 1), // Down
+                new Point(x - 1, y)  // Left
+            };
+
+            foreach (var point in possibleMoves)
+            {
+                int nx = point.X;
+                int ny = point.Y;
+                if (nx >= 0 && nx < MapWidth && ny >= 0 && ny < MapHeight && _map[ny, nx] != TileType.Wall)
+                {
+                    yield return point;
+                }
+            }
         }
 
         private void button3_Click(object sender, EventArgs e)
         {
-            if(FindWave(_wolfX, _wolfY, _targetX, _targetY))
+            bool pathExists = FindWave(_wolfX, _wolfY, _targetX, _targetY);
+            if (pathExists)
             {
                 DisplayLoseScreen();
-                if (_language == "Ua")
-                    MessageBox.Show("Ви програли :(");
-                else if(_language == "Eng")
-                    MessageBox.Show("Lose :(");
+                string loseMessage = _language == "Ua" ? "Ви програли :(" : "You lost :(";
+                MessageBox.Show(loseMessage);
                 Restart();
-            } else
+            }
+            else
             {
                 DisplayVictoryScreen();
-                
-                if (_language == "Ua")
-                    MessageBox.Show("Ви перемогли!");
-                else if (_language == "Eng")
-                    MessageBox.Show("Victory!");
+                string winMessage = _language == "Ua" ? "Ви перемогли!" : "You won!";
+                MessageBox.Show(winMessage);
                 CompleteLevelInstance._level = _level;
                 CompleteLevelInstance.isComp = true;
             }
